@@ -1,2 +1,2 @@
 # autotest
-AutoTest
+AutoTest selenium
