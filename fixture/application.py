@@ -1,24 +1,16 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-
+from fixture.session import SessionHelper
 
 class Application:
 
     def __init__(self):
         self.wd = webdriver.Chrome()
         self.wd.implicitly_wait(60)
+        self.session = SessionHelper(self)
 
     def open_home_page(self):
-        # open home page
         self.wd.get("http://localhost/addressbook/")
-
-    def login(self, username, password):
-        # login
-        self.open_home_page()
-        self.wd.find_element(By.NAME, "user").send_keys(username)
-        self.wd.find_element(By.NAME, "pass").click()
-        self.wd.find_element(By.NAME, "pass").send_keys(password)
-        self.wd.find_element(By.CSS_SELECTOR, "input:nth-child(7)").click()
 
     def create_group(self, group):
         self.open_groups_page()
@@ -37,16 +29,9 @@ class Application:
     def open_groups_page(self):
         self.wd.find_element(By.LINK_TEXT, "groups").click()
 
-    def logout(self):
-        # logout
-        self.wd.find_element(By.LINK_TEXT, "Logout").click()
-
     def return_to_groups_page(self):
         # return to groups page
         self.wd.find_element(By.LINK_TEXT, "group page").click()
-
-    # def teardown_method(self, method):
-    #     self.wd.quit()
 
     def destroy(self):
         self.wd.quit()
