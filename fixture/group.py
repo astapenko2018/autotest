@@ -1,4 +1,8 @@
+import time
+
+from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
+from model.group import Group
 
 
 class GroupHelper:
@@ -7,17 +11,29 @@ class GroupHelper:
         self.app = app
 
     def open_groups_page(self):
-        self.app.wd.find_element(By.LINK_TEXT, "groups").click()
+        wd = self.app.wd
+        # if not wd.current_url.endswith("/group.php") and len(wd.find_elements(By.NAME, "new")) > 0:
+        #     self.app.wd.find_element(By.LINK_TEXT, "groups").click()
+        elements = len(wd.find_elements(By.NAME, "new"))
+        print(elements)
+        if not wd.current_url.endswith("/group.php"):
+            self.app.wd.find_element(By.LINK_TEXT, "groups").click()
 
     def create(self, group):
+        print("Создание группы")
         wd = self.app.wd
         self.open_groups_page()
         # init group creation
-        wd.find_element(By.NAME, "new").click()
+        try:
+            wd.find_element(By.NAME, "new").click()
+        except NoSuchElementException:
+            time.sleep(2)
+            wd.find_element(By.XPATH, "(//input[@value='New group'])[1]").click()
         self.fill_group_form(group)
         # submit group creation
         wd.find_element(By.NAME, "submit").click()
         self.return_to_groups_page()
+        self.group_cache = None
 
     def change_field_value(self, field_name, text):
         wd = self.app.wd
@@ -34,21 +50,33 @@ class GroupHelper:
         self.change_field_value("group_footer", group.footer)
 
     def delete_first_group(self):
+        self.delete_group_by_index(0)
+
+    def delete_group_by_index(self, index):
         wd = self.app.wd
         self.open_groups_page()
-        self.select_first_group()
+        self.select_group_by_index(index)
         wd.find_element(By.NAME, "delete").click()
         self.return_to_groups_page()
+        self.group_cache = None
 
     def select_first_group(self):
         # select first group
         wd = self.app.wd
         wd.find_element(By.NAME, "selected[]").click()
 
-    def modify_first_group(self, new_group_data):
+    def select_group_by_index(self, index):
+        # select first group
+        wd = self.app.wd
+        wd.find_elements(By.NAME, "selected[]")[index].click()
+
+    def modify_first_group(self):
+        self.modify_group_by_index(0)
+
+    def modify_group_by_index(self, index, new_group_data):
         wd = self.app.wd
         self.open_groups_page()
-        self.select_first_group()
+        self.select_group_by_index(index)
         # open modification form
         wd.find_element(By.NAME, "edit").click()
         # fill group from
@@ -56,7 +84,29 @@ class GroupHelper:
         # submit modification
         wd.find_element(By.NAME, "update").click()
         self.return_to_groups_page()
+        self.group_cache = None
 
     def return_to_groups_page(self):
         # return to groups page
         self.app.wd.find_element(By.LINK_TEXT, "group page").click()
+
+    def count(self):
+        wd = self.app.wd
+        self.open_groups_page()
+        count_elements = len(wd.find_elements(By.NAME, "selected[]"))
+        print("Всего групп:", count_elements)
+        return count_elements
+
+    group_cache = None
+
+    def get_group_list(self):
+        if self.group_cache is None:
+            wd = self.app.wd
+            self.open_groups_page()
+            self.group_cache = []
+            for element in wd.find_elements(By.CSS_SELECTOR, "span.group"):
+                text = element.text
+                id = element.find_element(By.NAME, "selected[]").get_attribute("value")
+                self.group_cache.append(Group(name=text, id=id))
+        return list(self.group_cache)
+
