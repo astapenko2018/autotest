@@ -17,14 +17,15 @@ class Contact:
 В заключение:
 
 Этот код — это стандартный способ определения конструктора класса в Python. Он позволяет создавать объекты с нужными вам свойствами и начальными значениями."""
-    def __init__(self, firstname=None, lastname=None, homephone=None, mobilephone=None,
-                 workphone=None, secondaryphone=None, id=None):
+    def __init__(self, firstname=None, lastname=None, id=None, all_phones_from_page=None, homephone=None,
+                 mobilephone=None, workphone=None, secondaryphone=None):
         self.firstname = firstname
         self.lastname = lastname
         self.homephone = homephone
         self.mobilephone = mobilephone
         self.workphone = workphone
         self.secondaryphone = secondaryphone
+        self.all_phones_from_page = all_phones_from_page
         self.id = id
 
     def __repr__(self):
